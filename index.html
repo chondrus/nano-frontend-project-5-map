@@ -12,13 +12,25 @@
     <title>Map Project</title>
 </head>
 <body>
-    <div>
-        <h2>This is a Title</h2>
-    </div>
-    <div>
-        <p>This is a Paragraph
-        <button class="btn" data-bind="click: incrementCounter, text: btntext"></button>
-        <div data-bind="text: counter"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Sir Mapsalot</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <p>This is a Paragraph
+            </div>
+            <div class="col-md-6">
+                <button class="btn" data-bind="click: incrementCounter, text: btntext"></button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div data-bind="text: counter"></div>
+            </div>
+        </div>
     </div>
     <script type="text/javascript" src="js/lib/jquery-1.11.3.min.js"></script>
     <script type="text/javascript" src="js/lib/bootstrap.min.js"></script>
