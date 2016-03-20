@@ -1,3 +1,12 @@
 h2 {
     text-decoration: underline;
 }
+
+/*
+ * todo: make this a wee bit more responsive
+ */
+.map-container {
+    width: 500px;
+    height: 400px;
+    background-color: #CCC;
+}
