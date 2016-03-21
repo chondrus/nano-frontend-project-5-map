@@ -1,21 +1,25 @@
 /*
- * knockout app management
+ * data
  */
 var interestingLocations = [
     {
-        name: '0th Location',
-        clickCount: 0,
+        contentString: '0th Location',
+        position: new google.maps.LatLng(42.359, -71.062),
     },
     {
-        name: '1st Location',
-        clickCount: 0,
+        contentString: '1st Location',
+        position: new google.maps.LatLng(42.358, -71.061),
     }
 ];
 
-var Location = function(data) {
-    this.name = ko.observable(data.name);
-    this.clickCount = ko.observable(data.clickCount);
-}
+/*
+ * knockout app management
+ */
+
+// var Location = function(data) {
+//     this.name = ko.observable(data.name);
+//     this.clickCount = ko.observable(data.clickCount);
+// }
 
 
 var ViewModel = function() {
@@ -31,8 +35,6 @@ var ViewModel = function() {
     
 };
 
-ko.applyBindings(new ViewModel());
-
 /*
  * google maps funtionality
  *
@@ -41,27 +43,44 @@ ko.applyBindings(new ViewModel());
 var map;
 
 function initMap() {
+
     var mapDiv = document.getElementById('map');
     map = new google.maps.Map(mapDiv, {
         center: {lat: 42.359, lng: -71.062},
-        // zoom: 15
-        zoom: 2,
-        mapTypeId: google.maps.MapTypeId.TERRAIN
+        zoom: 15
     });
 
-    // Create a <script> tag and set the USGS URL as the source.
-    var script = document.createElement('script');
-
-    script.src = 'http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojsonp';
-    document.getElementsByTagName('head')[0].appendChild(script);
+    for (var i = 0, feature; feature = interestingLocations[i]; i++) {
+        addMarker(feature);
+    }
 }
 
-function eqfeed_callback(results) {
-  map.data.addGeoJson(results);
+function addMarker(feature) {
+    var infoWindow = new google.maps.InfoWindow({
+        content: feature.contentString
+    });
+
+    var marker = new google.maps.Marker({
+        position: feature.position,
+        // icons: icons[feature.type].icon,
+        map: map,
+        title: 'my title'
+    });
+
+    marker.addListener('click', function() {
+        infoWindow.open(map, marker);
+    })
 }
+
+/*
+ * Create the application
+ */
+
+// ko
+ko.applyBindings(new ViewModel());
 
 // Call the initialize function after the page has finished loading
-google.maps.event.addDomListener(window, 'load', initialize);
+google.maps.event.addDomListener(window, 'load', initMap);
 
 
 
