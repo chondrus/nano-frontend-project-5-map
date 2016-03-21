@@ -6,7 +6,8 @@ h2 {
  * todo: make this a wee bit more responsive
  */
 .map-container {
-    width: 500px;
+    /*width: 500px;*/
+    width: 100%;
     height: 400px;
     background-color: #CCC;
 }
