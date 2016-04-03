@@ -57,7 +57,7 @@ var initialLocations = [
 
 var Location = function(data) {
     this.id = data.id;
-    this.name = ko.observable(data.name);
+    this.name = data.name;
     this.clickCount = ko.observable(data.clickCount);
     // this.mk = ko.observable();
 }
@@ -74,9 +74,41 @@ var ViewModel = function() {
     };
 
     //hmmmm..........
+    // perhaps an all?
     self.currentLocationButtons = ko.observableArray([]);
     initialLocations.forEach(function(location){
         self.currentLocationButtons.push( new Location(location) );
+    });
+
+    self.activeFilter = ko.observable( null );
+
+    self.filterTest = function(model, event) {
+        console.log("filterTest");
+        console.log(self);
+        self.activeFilter(self.filterOnText);
+    }
+
+    self.filterOnText = function(location) {
+        console.log("filterOnText");
+        console.log(location);
+        // return (location.name.indexOf(text) > -1); 
+        // return 1;
+        return(location.name.indexOf("w") > -1);
+    }
+
+    self.filteredLocationButtons = ko.computed(function(){
+        console.log("filteredLocationButtons computer");
+        var result;
+        if (self.activeFilter()) {
+            result = ko.utils.arrayFilter(
+                self.currentLocationButtons(),
+                self.activeFilter()
+            );
+        } else {
+            result = self.currentLocationButtons();
+        }
+        console.log(result);
+        return result;
     });
 
 
