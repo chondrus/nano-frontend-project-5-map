@@ -8,24 +8,15 @@ var allMarkers = [];
 
 /*
  * data
+ * 
+ * ids are for unique indentification - 
+ * using ids as a proxy for ids from a database
  */
 var initialLocations = [
-    // {
-    //     name: 'Numero Uno',
-    //     contentString: '0th Location',
-    //     position: new google.maps.LatLng(42.359, -71.062),
-    //     clickCount: 0
-    // },
-    // {
-    //     name: "Zahl Zwei",
-    //     contentString: '1st Location',
-    //     position: new google.maps.LatLng(42.358, -71.061),
-    //     clickCount: 0
-    // },
     {
         id: 12,
         name: "Museum of Science",
-        contentString: "could be fun!",
+        contentString: "science science science",
         position: new google.maps.LatLng(42.367796, -71.073451),
     },
     {
@@ -43,7 +34,7 @@ var initialLocations = [
     {
         id: 37,
         name: "Fenway",
-        contentString: "Perfect for baseball fans",
+        contentString: "strike strike strike (you're out!)",
         position: new google.maps.LatLng(42.346914, -71.099412)
     },
     {
@@ -53,6 +44,7 @@ var initialLocations = [
         position: new google.maps.LatLng(42.355795, -71.0718667)
     }
 ];
+
 
 /*
  * knockout app management
@@ -82,9 +74,9 @@ var ViewModel = function() {
     };
 
     //hmmmm..........
-    self.currentLocations = ko.observableArray([]);
+    self.currentLocationButtons = ko.observableArray([]);
     initialLocations.forEach(function(location){
-        self.currentLocations.push( new Location(location) );      
+        self.currentLocationButtons.push( new Location(location) );
     });
 
 
@@ -95,8 +87,8 @@ var ViewModel = function() {
     //     self.currentCat().clickCount(self.currentCat().clickCount() + 1);
     // };
 
-    self.clickLocation = function(location) {
-        console.log("clickLocation");
+    self.clickLocationButton = function(location) {
+        console.log("clickLocationButton");
 
         console.log(location);
         console.log(this);
@@ -121,11 +113,17 @@ var ViewModel = function() {
     // self.linkMarkerToListItem = function() {};
 };
 
+
 /*
  * google maps funtionality
- *
  */
 
+// initMap
+//
+// does:
+//   - creates a new google map, assigns it to global `map`
+//   - adds all the markers based on app's `initialLocations` data
+//
 function initMap() {
 
     var mapDiv = document.getElementById('map');
@@ -144,6 +142,19 @@ function initMap() {
     }
 }
 
+// addMarkerToMap
+//
+// does:
+//   - creates a google map marker (which adds it to the map)
+//   - adds a google map listener to the marker that will:
+//       - set the content of the info window
+//       - open the info window
+// takes:
+//   - the `feature` to be added (assumes `id` and `position`)
+//   - the infoWindow `infoWindow` of the map
+//
+// returns:
+//   - the created marker object
 //
 function addMarkerToMap(feature, infoWindow) {
 
@@ -176,14 +187,15 @@ function addMarkerToMap(feature, infoWindow) {
 //     }
 // }
 
+
 /*
  * Create the application
  */
 
-// ko
+// Knockout
 ko.applyBindings(new ViewModel());
 
-// Call the initialize function after the page has finished loading
+// Google maps - call the initialize function after the page has finished loading
 google.maps.event.addDomListener(window, 'load', initMap);
 
 
