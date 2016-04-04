@@ -1,4 +1,8 @@
 /*
+ * Thank you to http://ryanrahlf.com/filtering-table-data-with-knockout-js/
+ */
+
+/*
  * Maaaagic globals! (that aren't functions)
  */
 
@@ -62,7 +66,6 @@ var Location = function(data) {
     // this.mk = ko.observable();
 }
 
-
 var ViewModel = function() {
     var self = this;
 
@@ -73,41 +76,41 @@ var ViewModel = function() {
         self.counter(self.counter() + 1);
     };
 
-    //hmmmm..........
-    // perhaps an all?
-    self.currentLocationButtons = ko.observableArray([]);
+    // not sure this has to be an observable
+    self.allLocationButtons = ko.observableArray([]);
     initialLocations.forEach(function(location){
-        self.currentLocationButtons.push( new Location(location) );
+        self.allLocationButtons.push( new Location(location) );
     });
 
     self.activeFilter = ko.observable( null );
 
-    self.filterTest = function(model, event) {
-        console.log("filterTest");
-        console.log(self);
+    // this takes care of both the list and the map markers?
+    self.setFilter = function(model, event) {
         self.activeFilter(self.filterOnText);
-    }
+    };
 
+    // this is its own function because we could implement
+    // a reeeeeeally complicated filter instead of just substring matching
     self.filterOnText = function(location) {
-        console.log("filterOnText");
-        console.log(location);
-        // return (location.name.indexOf(text) > -1); 
-        // return 1;
         return(location.name.indexOf("w") > -1);
-    }
+    };
 
     self.filteredLocationButtons = ko.computed(function(){
-        console.log("filteredLocationButtons computer");
         var result;
         if (self.activeFilter()) {
+            console.log("active filter");
             result = ko.utils.arrayFilter(
-                self.currentLocationButtons(),
+                self.allLocationButtons(),
                 self.activeFilter()
             );
+            // possible improvement: this doesn't have to happen "in-line" -
+            // and might be better not to, if something in google maps fails
+            // perhaps a web worker?
+            filterMapMarkers(result);
         } else {
-            result = self.currentLocationButtons();
+            result = self.allLocationButtons();
+            showAllMapMakers(); // ditto the inline comment above
         }
-        console.log(result);
         return result;
     });
 
@@ -122,24 +125,15 @@ var ViewModel = function() {
     self.clickLocationButton = function(location) {
         console.log("clickLocationButton");
 
-        console.log(location);
-        console.log(this);
-        console.log(self);
-
-        // get the marker we care about
+        // get the marker we care about, and "click" it
         // there has got to be a better way to do this...
         for (i = 0; i < allMarkers.length; i++) {
             if (location.id == allMarkers[i].id) {
                 google.maps.event.trigger(allMarkers[i],'click');
             }
         }
-
-        // bounce it
-
-        // popup its info window
-        // infowindow.open(map, marker);
-        // this.infoWindow.open(map, self);
     };
+
 
     // maaaaybe?
     // self.linkMarkerToListItem = function() {};
@@ -203,22 +197,38 @@ function addMarkerToMap(feature, infoWindow) {
     google.maps.event.addListener(marker, 'click', function() {
         infoWindow.setContent(feature.contentString);
         infoWindow.open(map, marker);
+        // TODO: bounce
     });
 
     return marker;    
 }
 
-// function filterMarkers(marker) {
-//     for (var i = 0, feature; feature = interestingLocations[i]; i++) {
-//         if () {
-//             marker.setVisible(true);
-//         }
-//         else {
-//             marker.setVisible(false);
-//         }
-//     }
-// }
+// filterMapMarkers
+//
+// does:
+//   - hides markers with ids not in activeMarkers
+//
+///
+// thiiiiis could maybe be more efficient
+//
+function filterMapMarkers(activeMarkers) {
+    var ids = activeMarkers.map(function(marker) {return marker.id;});
 
+    for (var i = 0; i < allMarkers.length; i++) {
+        var tempMarker = allMarkers[i];
+        if (ids.indexOf(tempMarker.id) < 0) {
+            tempMarker.setVisible(false);
+        }
+    }
+
+    return 1;
+};
+
+function showAllMapMakers() {
+    for (var i = 0, marker; marker = allMarkers[i]; i++) {
+        tempMarker.setVisible(true);
+    }
+};
 
 /*
  * Create the application
