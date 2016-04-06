@@ -54,16 +54,12 @@ var initialLocations = [
  * knockout app management
  */
 
-// var Location = function(data) {
-//     this.name = ko.observable(data.name);
-//     this.clickCount = ko.observable(data.clickCount);
-// }
-
 var Location = function(data) {
     this.id = data.id;
     this.name = data.name;
+    // just to prevent re-calling toLowerCase a bunch
+    this.search_text = data.name.toLowerCase().concat( data.contentString.toLowerCase() );
     this.clickCount = ko.observable(data.clickCount);
-    // this.mk = ko.observable();
 }
 
 var ViewModel = function() {
@@ -78,30 +74,37 @@ var ViewModel = function() {
 
     // not sure this has to be an observable
     self.allLocationButtons = ko.observableArray([]);
+    // use the data to create the initial location buttons
     initialLocations.forEach(function(location){
         self.allLocationButtons.push( new Location(location) );
     });
 
-    self.activeFilter = ko.observable( null );
-
-    // this takes care of both the list and the map markers?
-    self.setFilter = function(model, event) {
-        self.activeFilter(self.filterOnText);
-    };
-
     // this is its own function because we could implement
     // a reeeeeeally complicated filter instead of just substring matching
     self.filterOnText = function(location) {
-        return(location.name.indexOf("w") > -1);
+        console.log("filterOnText");
+        console.log(location)
+        return (
+            // location.name.toLowerCase().indexOf(self.activeFilterInput().toLowerCase()) > -1 ||
+            // location.about.toLowerCase().indexOf(self.activeFilterInput().toLowerCase()) > -1
+            location.search_text.indexOf(self.activeFilterInput().toLowerCase()) > -1
+        );
     };
+
+    self.activeFilterInput = ko.observable ( null );
 
     self.filteredLocationButtons = ko.computed(function(){
         var result;
-        if (self.activeFilter()) {
-            console.log("active filter");
+        if (self.activeFilterInput()) {
+
+            console.log("filterTextInput");
+
             result = ko.utils.arrayFilter(
                 self.allLocationButtons(),
-                self.activeFilter()
+                function(Loc) {
+                    console.log("Loc");
+                    return self.filterOnText(Loc);
+                }
             );
             // possible improvement: this doesn't have to happen "in-line" -
             // and might be better not to, if something in google maps fails
@@ -114,14 +117,6 @@ var ViewModel = function() {
         return result;
     });
 
-
-    // // 'this' represents the currentcat's binding context
-    //     // because of the 'with' in the HTML
-    // // 'self' represents the view model
-    // this.incrementCounter = function() {
-    //     self.currentCat().clickCount(self.currentCat().clickCount() + 1);
-    // };
-
     self.clickLocationButton = function(location) {
         console.log("clickLocationButton");
 
@@ -133,10 +128,6 @@ var ViewModel = function() {
             }
         }
     };
-
-
-    // maaaaybe?
-    // self.linkMarkerToListItem = function() {};
 };
 
 
@@ -225,7 +216,7 @@ function filterMapMarkers(activeMarkers) {
 };
 
 function showAllMapMakers() {
-    for (var i = 0, marker; marker = allMarkers[i]; i++) {
+    for (var i = 0, tempMarker; tempMarker = allMarkers[i]; i++) {
         tempMarker.setVisible(true);
     }
 };

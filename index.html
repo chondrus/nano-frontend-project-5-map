@@ -35,17 +35,9 @@
         <div class="row">
             <div id="sidebar" class="col-md-3">
                 <div id="filter" class="">
-
-                    <!-- input field, basic -->
-                    <input type="text" id="street" value="test1">
-
-                    <!-- input field, ko -->
-                    <!-- <div>
-                        <input type="text" data-bind="value: 'test2', valueUpdate: 'afterkeydown'"/>
-                    </div> -->
-                    <br>
-                    <button data-bind="text:'filterTest', click: setFilter"></button>
-
+                    <div>
+                        <input data-bind="textInput: activeFilterInput" /></p>
+                    </div>
                 </div>
                 <div id="clickList">
                     list goes here
