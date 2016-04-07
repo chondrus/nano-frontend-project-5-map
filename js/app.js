@@ -7,7 +7,7 @@
  */
 
 var map;
-var allMarkers = [];
+var infoWindow;
 
 
 /*
@@ -37,7 +37,7 @@ var initialLocations = [
     },
     {
         id: 37,
-        name: "Fenway",
+        name: "Fenway Park",
         contentString: "strike strike strike (you're out!)",
         position: new google.maps.LatLng(42.346914, -71.099412)
     },
@@ -57,8 +57,11 @@ var initialLocations = [
 var Location = function(data) {
     this.id = data.id;
     this.name = data.name;
+    this.position = data.position;
+    this.description = data.contentString;
     // just to prevent re-calling toLowerCase a bunch
-    this.search_text = data.name.toLowerCase().concat( data.contentString.toLowerCase() );
+    this.search_text = data.name.toLowerCase() + " " + data.contentString.toLowerCase();
+
     this.clickCount = ko.observable(data.clickCount);
 }
 
@@ -67,6 +70,16 @@ var ViewModel = function() {
 
     self.counter = ko.observable(0);
     self.btntext = ko.observable('This is a cool button');
+
+    self.selectedMapMarker = ko.observable ( null ) ;
+    self.selectedMapMarkerName = ko.computed(function() {
+        if (self.selectedMapMarker()) {
+            return self.selectedMapMarker().title;
+        }
+        else {
+            return null;
+        }
+    });
 
     self.incrementCounter = function() {
         self.counter(self.counter() + 1);
@@ -82,11 +95,7 @@ var ViewModel = function() {
     // this is its own function because we could implement
     // a reeeeeeally complicated filter instead of just substring matching
     self.filterOnText = function(location) {
-        console.log("filterOnText");
-        console.log(location)
         return (
-            // location.name.toLowerCase().indexOf(self.activeFilterInput().toLowerCase()) > -1 ||
-            // location.about.toLowerCase().indexOf(self.activeFilterInput().toLowerCase()) > -1
             location.search_text.indexOf(self.activeFilterInput().toLowerCase()) > -1
         );
     };
@@ -95,6 +104,9 @@ var ViewModel = function() {
 
     self.filteredLocationButtons = ko.computed(function(){
         var result;
+        if (infoWindow) {
+            infoWindow.close();
+        }
         if (self.activeFilterInput()) {
 
             console.log("filterTextInput");
@@ -102,32 +114,154 @@ var ViewModel = function() {
             result = ko.utils.arrayFilter(
                 self.allLocationButtons(),
                 function(Loc) {
-                    console.log("Loc");
                     return self.filterOnText(Loc);
                 }
             );
             // possible improvement: this doesn't have to happen "in-line" -
             // and might be better not to, if something in google maps fails
             // perhaps a web worker?
-            filterMapMarkers(result);
+            if (map) {
+                self.filterMapMarkers(result);
+            }
         } else {
             result = self.allLocationButtons();
-            showAllMapMakers(); // ditto the inline comment above
+
+            // ditto about the in-line comment
+            if (map) {
+                self.showAllMapMakers();
+            }
         }
         return result;
     });
 
-    self.clickLocationButton = function(location) {
-        console.log("clickLocationButton");
 
-        // get the marker we care about, and "click" it
-        // there has got to be a better way to do this...
-        for (i = 0; i < allMarkers.length; i++) {
-            if (location.id == allMarkers[i].id) {
-                google.maps.event.trigger(allMarkers[i],'click');
+    // filterMapMarkers
+    //
+    // does:
+    //   - hides markers with ids not in activeMarkers
+    //
+    self.filterMapMarkers = function(activeMarkers) {
+        console.log("filterMapMarkers");
+        var ids = activeMarkers.map(function(marker) {return marker.id;});
+        console.log(ids);
+        console.log(self.allLocationButtons());
+        console.log(infoWindow);
+        for (var i = 0; i < self.allLocationButtons().length; i++) {
+            var tempMarker = self.allLocationButtons()[i].marker;
+            if (ids.indexOf(tempMarker.id) < 0) {
+                tempMarker.setVisible(false);
+            }
+            else {
+                tempMarker.setVisible(true);
             }
         }
     };
+
+    self.showAllMapMakers = function() {
+        for (var i = 0; i < self.allLocationButtons().length; i++) {
+            self.allLocationButtons()[i].marker.setVisible(true);
+        }
+    };
+
+    self.clickLocationButton = function(location) {
+        google.maps.event.trigger(location.marker,'click');
+    };
+
+    this.setSelectedMapMarker = function (marker) {
+        self.selectedMapMarker(marker);
+    };
+
+
+    // creates all the map markers -
+    // thin, loopy wrapper around createMapMarker
+    this.createMapMarkers = function () {
+        for (var i = 0; i < self.allLocationButtons().length; i++) {
+            self.allLocationButtons()[i].marker = self.createMapMarker(self.allLocationButtons()[i]);
+        }
+        console.log(self.allLocationButtons());
+    };
+
+    // createMapMarker
+    //
+    // does:
+    //   - creates a google map marker (which adds it to the map)
+    //   - adds a google map listener to the marker that will:
+    //       - set the content of the info window
+    //       - open the info window
+    // takes:
+    //   - the `feature` to be added (assumes `id` and `position`)
+    //
+    // returns:
+    //   - the created marker object
+    //
+    this.createMapMarker = function (feature) {
+
+        // create the marker
+        var marker = new google.maps.Marker({
+            id : feature.id,
+            position: feature.position,
+            // icons: icons[feature.type].icon,
+            map: map,
+            title: feature.name
+        });
+
+        // add a click handler for it - this will close any info window,
+        // bounce the map marker clicked, and then open the info window
+        google.maps.event.addListener(marker, 'click', function() {
+
+            console.log(marker);
+
+            if (infoWindow) {
+                infoWindow.close(map, marker);
+                infoWindow.setContent(feature.contentString);
+                loadWikipedia(marker.title);
+            }
+
+            marker.setAnimation(google.maps.Animation.BOUNCE);
+            setTimeout(function(){ marker.setAnimation(null); },  700);
+            setTimeout(function(){ infoWindow.open(map, marker)}, 700);
+        });
+
+        return marker;
+    }
+
+};
+
+function loadWikipedia(placeName) {
+    var $wikiElem = $('#wikipedia-links');
+    $wikiElem.empty();
+    $.ajax({
+        url: "https://en.wikipedia.org/w/api.php",
+        data: {
+            action: 'query',
+            list: 'search',
+            srsearch: placeName + 'Boston',
+            srlimit: 3,
+            format: 'json',
+        },
+        type: "GET",
+        dataType: "jsonp"
+    })
+        .done(function( msg ) {
+            console.log( "done ");
+        })
+        .success(function ( data ) {
+            console.log(data);
+
+            var articles = data.query.search;
+            for (var i = 0; i < articles.length; i++) {
+                article = articles[i];
+                title = article.title;
+
+                $wikiElem.append(
+                    '<li>'+
+                        '<a href="https://en.wikipedia.org/wiki/' + title + '">' + title + '</a>' +
+                    '</li>'
+                );
+            }
+        });
+
+    return false;
 };
 
 
@@ -150,83 +284,19 @@ function initMap() {
     });
 
     // we will only need one of these
-    var infoWindow = new google.maps.InfoWindow({});
+    infoWindow = new google.maps.InfoWindow({});
 
-    // perhaps this should not also access the data hmmm
-    for (var i = 0, feature; feature = initialLocations[i]; i++) {
-        var mark = addMarkerToMap(feature, infoWindow);
-        allMarkers.push(mark);
-    }
+    // ask the view model to deal with the map markers
+    vm.createMapMarkers();
 }
-
-// addMarkerToMap
-//
-// does:
-//   - creates a google map marker (which adds it to the map)
-//   - adds a google map listener to the marker that will:
-//       - set the content of the info window
-//       - open the info window
-// takes:
-//   - the `feature` to be added (assumes `id` and `position`)
-//   - the infoWindow `infoWindow` of the map
-//
-// returns:
-//   - the created marker object
-//
-function addMarkerToMap(feature, infoWindow) {
-
-    // create the marker
-    var marker = new google.maps.Marker({
-        id : feature.id,
-        position: feature.position,
-        // icons: icons[feature.type].icon,
-        map: map,
-        title: 'my title'
-    });
-
-    // add a click handler for it
-    google.maps.event.addListener(marker, 'click', function() {
-        infoWindow.setContent(feature.contentString);
-        infoWindow.open(map, marker);
-        // TODO: bounce
-    });
-
-    return marker;    
-}
-
-// filterMapMarkers
-//
-// does:
-//   - hides markers with ids not in activeMarkers
-//
-///
-// thiiiiis could maybe be more efficient
-//
-function filterMapMarkers(activeMarkers) {
-    var ids = activeMarkers.map(function(marker) {return marker.id;});
-
-    for (var i = 0; i < allMarkers.length; i++) {
-        var tempMarker = allMarkers[i];
-        if (ids.indexOf(tempMarker.id) < 0) {
-            tempMarker.setVisible(false);
-        }
-    }
-
-    return 1;
-};
-
-function showAllMapMakers() {
-    for (var i = 0, tempMarker; tempMarker = allMarkers[i]; i++) {
-        tempMarker.setVisible(true);
-    }
-};
 
 /*
  * Create the application
  */
 
 // Knockout
-ko.applyBindings(new ViewModel());
+var vm = new ViewModel();
+ko.applyBindings(vm);
 
 // Google maps - call the initialize function after the page has finished loading
 google.maps.event.addDomListener(window, 'load', initMap);

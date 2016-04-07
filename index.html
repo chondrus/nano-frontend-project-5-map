@@ -47,6 +47,10 @@
                         </li>
                     </ul>
                 </div>
+
+                <div id="wikiinfo">
+                    <ul id="wikipedia-links"></ul>
+                </div>
             </div>
 
             <div id="content" class="col-md-9">
@@ -58,7 +62,18 @@
 
         <div class="row footer">
             <div class="col-sm-12">
-                <p>Thank you for using blahblahblah
+                <p>Footer
+            </div>
+        </div>
+    </div>
+
+    <!-- this is not to display -->
+    <!-- <div display='none'> -->
+    <div>
+        <div id="infowindow-template">
+            <h4 data-bind="text: selectedMapMarkerName"></h4>
+            <p data-bind:"text: selectedMapMarkerContent">
+            <div id="infowindow-body">
             </div>
         </div>
     </div>
