@@ -13,67 +13,55 @@
 </head>
 <body>
     <div class="container-fluid">
-        <div id="header" class="row-fluid">
+        <div id="header" class="row">
             <div class="col-md-12">
-                <h2>Sir Mapsalot</h2>
+                <h1>Sir Mapsalot</h1>
             </div>
         </div>
+
         <div class="row">
             <div class="col-md-6">
-                <p>These are the travels of Sir Mapsalot
-            </div>
-            <div class="col-md-6">
-                <button class="btn" data-bind="click: incrementCounter, text: btntext"></button>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <div data-bind="text: counter"></div>
+                <p>These are the travels of Sir Mapsalot...
             </div>
         </div>
 
         <div class="row">
             <div id="sidebar" class="col-md-3">
                 <div id="filter" class="">
+                    Filter Locations:
                     <div>
-                        <input data-bind="textInput: activeFilterInput" /></p>
+                        <input data-bind="textInput: activeFilterInput"/></p>
                     </div>
                 </div>
                 <div id="clickList">
-                    list goes here
+                    Locations:
                     <ul data-bind="foreach: filteredLocationButtons">
-                        <li>
+                        <li class="listelement">
                             <button data-bind="text:name, click: $parent.clickLocationButton"></button>
                         </li>
                     </ul>
                 </div>
-
-                <div id="wikiinfo">
-                    <ul id="wikipedia-links"></ul>
-                </div>
             </div>
 
             <div id="content" class="col-md-9">
-                map goes here
-                <div id="map" class="map-container">
-                </div>
+                <div id="map" class="map-container"></div>
             </div>
         </div>
 
         <div class="row footer">
             <div class="col-sm-12">
-                <p>Footer
+                <p>This is the footer of Sir Mapsalot
             </div>
         </div>
     </div>
 
-    <!-- this is not to display -->
-    <!-- <div display='none'> -->
-    <div>
+    <!-- this is used for the info windows only -->
+    <div style="display:none">
         <div id="infowindow-template">
-            <h4 data-bind="text: selectedMapMarkerName"></h4>
-            <p data-bind:"text: selectedMapMarkerContent">
-            <div id="infowindow-body">
+            <h5 data-bind="text: selectedLocationName"></h5>
+            <div data-bind="text: selectedLocationDescription"></div>
+            <div id="infowindow-wikipedia">
+                <ul id="wikipedia-links"></ul>
             </div>
         </div>
     </div>

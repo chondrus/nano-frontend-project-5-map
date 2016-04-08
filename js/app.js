@@ -21,31 +21,36 @@ var initialLocations = [
         id: 12,
         name: "Museum of Science",
         contentString: "science science science",
-        position: new google.maps.LatLng(42.367796, -71.073451),
+        lat: 42.367,
+        lng: -71.0722,
     },
     {
         id: 2,
-        name: "Aquarium",
+        name: "New England Aquarium",
         contentString: "fish fish fish",
-        position: new google.maps.LatLng(42.359248, -71.050662),
+        lat: 42.359248,
+        lng: -71.050662,
     },
     {
         id: 1,
         name: "Museum of Art",
         contentString: "art art art",
-        position: new google.maps.LatLng(42.339198, -71.090732)
+        lat: 42.339198,
+        lng: -71.090732,
     },
     {
         id: 37,
         name: "Fenway Park",
         contentString: "strike strike strike (you're out!)",
-        position: new google.maps.LatLng(42.346914, -71.099412)
+        lat: 42.346914,
+        lng: -71.099412,
     },
     {
         id: 36,
         name: "Make way for Duckings",
         contentString: "ducks ducks ducks",
-        position: new google.maps.LatLng(42.355795, -71.0718667)
+        lat: 42.355795,
+        lng: -71.0718667,
     }
 ];
 
@@ -54,79 +59,80 @@ var initialLocations = [
  * knockout app management
  */
 
+
+// Location constructor - creates a new location object based on passed-in data
 var Location = function(data) {
     this.id = data.id;
     this.name = data.name;
-    this.position = data.position;
+    this.lat = data.lat;
+    this.lng = data.lng;
     this.description = data.contentString;
     // just to prevent re-calling toLowerCase a bunch
     this.search_text = data.name.toLowerCase() + " " + data.contentString.toLowerCase();
-
-    this.clickCount = ko.observable(data.clickCount);
 }
 
+// knockout's ViewModel
 var ViewModel = function() {
+
     var self = this;
 
-    self.counter = ko.observable(0);
-    self.btntext = ko.observable('This is a cool button');
+    self.allLocationButtons = ko.observableArray([]);  // not sure this has to be an observable
+    self.selectedLocation = ko.observable(null);
+    self.activeFilterInput = ko.observable ( null );
 
-    self.selectedMapMarker = ko.observable ( null ) ;
-    self.selectedMapMarkerName = ko.computed(function() {
-        if (self.selectedMapMarker()) {
-            return self.selectedMapMarker().title;
-        }
-        else {
-            return null;
-        }
-    });
-
-    self.incrementCounter = function() {
-        self.counter(self.counter() + 1);
-    };
-
-    // not sure this has to be an observable
-    self.allLocationButtons = ko.observableArray([]);
     // use the data to create the initial location buttons
     initialLocations.forEach(function(location){
         self.allLocationButtons.push( new Location(location) );
     });
 
-    // this is its own function because we could implement
-    // a reeeeeeally complicated filter instead of just substring matching
-    self.filterOnText = function(location) {
-        return (
-            location.search_text.indexOf(self.activeFilterInput().toLowerCase()) > -1
-        );
-    };
+    // computed values from `selectedLocation`
+    self.selectedLocationName = ko.computed(function() {
+        if (self.selectedLocation()) {
+            return self.selectedLocation().name;
+        } else {
+            return null;
+        }
+    });
+    self.selectedLocationDescription = ko.computed(function() {
+        if (self.selectedLocation()) {
+            return self.selectedLocation().description;
+        } else {
+            return null;
+        }
+    });
 
-    self.activeFilterInput = ko.observable ( null );
-
-    self.filteredLocationButtons = ko.computed(function(){
+    /* 
+     * computed filter from `activeFilterInput`
+     * does:
+     *  - closes the `infoWindow` (if it exists)
+     *      - (mostly to prevent hanging around awkwardly about nothing)
+     *  - calls for the map markers to be filtered
+     *  - filters the location buttons
+     *
+     * possible improvement:
+     *  filtering map markers doesn't have to happen "in-process" -
+     *  and might be better not to, if something in google maps fails.
+     *  perhaps a web worker? or just a try catch to start
+     */ 
+    self.filteredLocationButtons = ko.computed(function() {
         var result;
+
         if (infoWindow) {
             infoWindow.close();
         }
+
         if (self.activeFilterInput()) {
-
-            console.log("filterTextInput");
-
             result = ko.utils.arrayFilter(
                 self.allLocationButtons(),
                 function(Loc) {
                     return self.filterOnText(Loc);
                 }
             );
-            // possible improvement: this doesn't have to happen "in-line" -
-            // and might be better not to, if something in google maps fails
-            // perhaps a web worker?
             if (map) {
                 self.filterMapMarkers(result);
             }
         } else {
             result = self.allLocationButtons();
-
-            // ditto about the in-line comment
             if (map) {
                 self.showAllMapMakers();
             }
@@ -134,18 +140,25 @@ var ViewModel = function() {
         return result;
     });
 
+    // helper function to above computed function.
+    // why a function? we could implement a reeeeeeally complicated filter
+    self.filterOnText = function(location) {
+        return (
+            location.search_text.indexOf(self.activeFilterInput().toLowerCase()) > -1
+        );
+    };
 
-    // filterMapMarkers
-    //
-    // does:
-    //   - hides markers with ids not in activeMarkers
-    //
+
+    /*
+     * filterMapMarkers (& showAllMapMakers)
+     *
+     * possible improvment:
+     *  this is so solidly map functionality that it might belong out of the ViewModel
+     */
     self.filterMapMarkers = function(activeMarkers) {
-        console.log("filterMapMarkers");
+
         var ids = activeMarkers.map(function(marker) {return marker.id;});
-        console.log(ids);
-        console.log(self.allLocationButtons());
-        console.log(infoWindow);
+
         for (var i = 0; i < self.allLocationButtons().length; i++) {
             var tempMarker = self.allLocationButtons()[i].marker;
             if (ids.indexOf(tempMarker.id) < 0) {
@@ -163,43 +176,39 @@ var ViewModel = function() {
         }
     };
 
+    /*
+     * clickLocationButton
+     * does:
+     *  - triggers clicking the marker on the google map
+     *
+     * possible improvement:
+     *  have something happen even if there is no map
+     */
     self.clickLocationButton = function(location) {
-        google.maps.event.trigger(location.marker,'click');
-    };
-
-    this.setSelectedMapMarker = function (marker) {
-        self.selectedMapMarker(marker);
-    };
-
-
-    // creates all the map markers -
-    // thin, loopy wrapper around createMapMarker
-    this.createMapMarkers = function () {
-        for (var i = 0; i < self.allLocationButtons().length; i++) {
-            self.allLocationButtons()[i].marker = self.createMapMarker(self.allLocationButtons()[i]);
+        if (map) {
+            google.maps.event.trigger(location.marker,'click');
         }
-        console.log(self.allLocationButtons());
     };
 
-    // createMapMarker
-    //
-    // does:
-    //   - creates a google map marker (which adds it to the map)
-    //   - adds a google map listener to the marker that will:
-    //       - set the content of the info window
-    //       - open the info window
-    // takes:
-    //   - the `feature` to be added (assumes `id` and `position`)
-    //
-    // returns:
-    //   - the created marker object
-    //
-    this.createMapMarker = function (feature) {
+    /*
+     * createMapMarker
+     * does:
+     *  - creates a google map marker (which adds it to the map)
+     *  - adds a google map listener to the marker that will:
+     *      - set `selectedLocation`
+     *      - open/close/update the `infoWindow` as needed 
+     *      - bounce the icon
+     * takes:
+     *  - the `feature` to be added
+     * returns:
+     *  - the created google map marker object
+     */
+    self.createMapMarker = function (feature) {
 
         // create the marker
         var marker = new google.maps.Marker({
             id : feature.id,
-            position: feature.position,
+            position: (new google.maps.LatLng(feature.lat, feature.lng)),
             // icons: icons[feature.type].icon,
             map: map,
             title: feature.name
@@ -209,27 +218,63 @@ var ViewModel = function() {
         // bounce the map marker clicked, and then open the info window
         google.maps.event.addListener(marker, 'click', function() {
 
-            console.log(marker);
+            self.selectedLocation(feature);
 
             if (infoWindow) {
+                // close the (previous) info window and wipe the (previous) wikipedia links
                 infoWindow.close(map, marker);
-                infoWindow.setContent(feature.contentString);
-                loadWikipedia(marker.title);
+                $('#wikipedia-links').empty();
+
+                // re-set the content 
+                var $infoWindowTemplate = $('#infowindow-template');
+                infoWindow.setContent($infoWindowTemplate.html());
+
+                // re-load wikipedia
+                tryToLoadWikipedia(feature.name);
             }
 
+            // bounce!
             marker.setAnimation(google.maps.Animation.BOUNCE);
-            setTimeout(function(){ marker.setAnimation(null); },  700);
-            setTimeout(function(){ infoWindow.open(map, marker)}, 700);
+            setTimeout(function() {
+                marker.setAnimation(null);
+            }, 700);
+            setTimeout(function() {
+                infoWindow.open(map, marker)
+            }, 700);
         });
 
         return marker;
-    }
+    };
 
+    // thin, loopy wrapper around `createMapMarker` above
+    self.createMapMarkers = function () {
+        for (var i = 0; i < self.allLocationButtons().length; i++) {
+            self.allLocationButtons()[i].marker = self.createMapMarker(self.allLocationButtons()[i]);
+        }
+        console.log(self.allLocationButtons());
+    };
 };
 
-function loadWikipedia(placeName) {
+/*
+ * Wikipedia
+ */
+
+/*
+ * tryToLoadWikipedia
+ * does:
+ *  - ajax request to wikipedia search for 3 articles
+ *  - on success, loads those (or message) into the (global) `infoWindow`
+ *  - on error, loads an error message into the (global) `infoWindow`
+ * takes:
+ *  - `placeName` query string to use for wikipedia search
+ * returns:
+ *  - nothing
+ */
+function tryToLoadWikipedia(placeName) {
+
+    console.log("tryToLoadWikipedia");
+
     var $wikiElem = $('#wikipedia-links');
-    $wikiElem.empty();
     $.ajax({
         url: "https://en.wikipedia.org/w/api.php",
         data: {
@@ -240,28 +285,40 @@ function loadWikipedia(placeName) {
             format: 'json',
         },
         type: "GET",
-        dataType: "jsonp"
-    })
-        .done(function( msg ) {
-            console.log( "done ");
-        })
-        .success(function ( data ) {
+        dataType: "jsonp",
+        success: function ( data ) {
             console.log(data);
 
             var articles = data.query.search;
-            for (var i = 0; i < articles.length; i++) {
-                article = articles[i];
-                title = article.title;
 
-                $wikiElem.append(
-                    '<li>'+
-                        '<a href="https://en.wikipedia.org/wiki/' + title + '">' + title + '</a>' +
-                    '</li>'
-                );
+            // if there are articles found, append them
+            if (articles.length > 1) {
+                for (var i = 0; i < articles.length; i++) {
+                    article = articles[i];
+                    title = article.title;
+
+                    $wikiElem.append(
+                        '<li>'+
+                            '<a href="https://en.wikipedia.org/wiki/' + title + '">' + title + '</a>' +
+                        '</li>'
+                    );
+                }
+            } else {
+                $wikiElem.append('<i>no wikipedia articles found</i>');
             }
-        });
 
-    return false;
+            // reset the infowindow content
+            var $infoWindowTemplate = $('#infowindow-template');
+            infoWindow.setContent($infoWindowTemplate.html());
+        },
+        error: function ( e ) {
+            $wikiElem.append('<i>error retrieving wikipedia links</i>');
+            var $infoWindowTemplate = $('#infowindow-template');
+            infoWindow.setContent($infoWindowTemplate.html());
+        }
+    });
+
+    return;
 };
 
 
@@ -269,12 +326,14 @@ function loadWikipedia(placeName) {
  * google maps funtionality
  */
 
-// initMap
-//
-// does:
-//   - creates a new google map, assigns it to global `map`
-//   - adds all the markers based on app's `initialLocations` data
-//
+/*
+ * initMap
+ * does:
+ *   - creates a new google map, assigns it to global `map`
+ *   - triggers the view model to create all the markers
+ * takes nothing
+ * returns nothing
+ */
 function initMap() {
 
     var mapDiv = document.getElementById('map');
@@ -288,7 +347,9 @@ function initMap() {
 
     // ask the view model to deal with the map markers
     vm.createMapMarkers();
+    return;
 }
+
 
 /*
  * Create the application
