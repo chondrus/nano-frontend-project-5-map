@@ -2,9 +2,7 @@
 html, body {
     height: 100%;
     min-height: 100%;
-    /*max-height: 100%;*/
     overflow: hidden;
-    /*margin: 5px 5px 5px 5px;*/
     padding: 0 0 0 0;
 }
 
@@ -31,6 +29,7 @@ html, body {
 
 .toggle {
     margin-bottom: 10px;
+    margin-left: 15px;
 }
 
 /*
@@ -43,11 +42,9 @@ html, body {
     background-color: gray;
     margin-left: 15px;
     margin-right: -15px;
-}
-
-.map-row {
-    padding: 0 0 0 0;
-    /*max-width: calc(100% - 100px);*/
+    margin-bottom: 0;
+    height: calc(100% - 100px);
+    min-height: calc(100% - 100px);
 }
 
 .location-list {
@@ -56,18 +53,30 @@ html, body {
     padding: 0 0 0 0;
 }
 
+.listelement {
+    margin: 5px 0 0 0;
+}
+
 /*
  * map
  */
 .full-height {
-    height: calc(100% - 23px);
-    min-height: calc(100% - 23px);
+    height: 100%;
+    min-height: 100%;
+    margin-bottom: 0;
+}
+
+.map-col {
+    padding: 0 0 0 0;
 }
 
 .map-container {
     width: calc(100% - 30px) ;
+    height: calc(100% - 100px);
+    min-height: calc(100% - 100px);
     background-color: #CCC;
     margin-left: 15px;
     margin-right: 15px;
-    height: 400px;
+    margin-bottom: 0;
+    padding: 0 0 0 0;
 }
