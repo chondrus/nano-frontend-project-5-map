@@ -7,26 +7,21 @@
     <meta name="author" content="k">
 
     <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-theme.min.css">
     <link rel="stylesheet" href="css/styles.css">
 
     <title>Map Project</title>
 </head>
 <body>
-    <div class="container-fluid">
-        <div id="header" class="row">
+    <div class="full-height container-fluid">
+        <div class="header row">
             <div class="col-md-12">
                 <h1>Sir Mapsalot</h1>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-6">
-                <p>These are the travels of Sir Mapsalot...
-            </div>
-        </div>
-
-        <div class="row">
-            <div id="sidebar" class="col-md-3">
+        <div class="full-height row">
+            <div class="full-height sidebar col-xs-3">
                 <div id="filter" class="">
                     Filter Locations:
                     <div>
@@ -35,22 +30,16 @@
                 </div>
                 <div id="clickList">
                     Locations:
-                    <ul data-bind="foreach: filteredLocationButtons">
+                    <ul class="location-list" data-bind="foreach: filteredLocationButtons">
                         <li class="listelement">
-                            <button data-bind="text:name, click: $parent.clickLocationButton"></button>
+                            <button class="btn" data-bind="text:name, click: $parent.clickLocationButton"></button>
                         </li>
                     </ul>
                 </div>
             </div>
 
-            <div id="content" class="col-md-9">
+            <div class="full-height map-row col-xs-9">
                 <div id="map" class="map-container"></div>
-            </div>
-        </div>
-
-        <div class="row footer">
-            <div class="col-sm-12">
-                <p>This is the footer of Sir Mapsalot
             </div>
         </div>
     </div>
