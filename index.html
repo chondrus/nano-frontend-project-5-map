@@ -8,21 +8,30 @@
 
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="css/offcanvas.css" >
     <link rel="stylesheet" href="css/styles.css">
 
     <title>Map Project</title>
 </head>
 <body>
-    <div class="full-height container-fluid">
-        <div class="header row">
-            <div class="col-md-12">
-                <h1>Sir Mapsalot</h1>
+    <div class="navbar">
+        <div class="container-fluid">
+            <div class="header row">
+                <div class="col-md-12">
+                    <h1 class="title">Sir Mapsalot</h1>
+                    <span class="visible-xs-inline-block">
+                        <button type="button" class="btn btn-xs toggle"
+                            data-toggle="offcanvas">Toggle List
+                        </button>
+                    </span>
+                </div>
             </div>
         </div>
+    </div>
 
-        <div class="full-height row">
-
-            <div class="full-height sidebar col-xs-4 col-sm-3 col-lg-2">
+    <div class="full-height container-fluid content">
+        <div class="row row-offcanvas row-offcanvas-left">
+            <div class="col-xs-6 col-sm-3 sidebar-offcanvas sidebar" id="sidebar">
 
                 <div id="filter" class="">
                     Filter Locations:
@@ -39,9 +48,9 @@
                         </li>
                     </ul>
                 </div>
-            </div>
+            </div> <!-- /sidebar-->
 
-            <div class="full-height map-row col-xs-8 col-sm-9 col-lg-10">
+            <div class="full-height map-row col-xs-12 col-sm-9">
                 <div id="map" class="map-container"></div>
             </div>
         </div>
@@ -59,6 +68,7 @@
     </div>
     <script type="text/javascript" src="js/lib/jquery-1.11.3.min.js"></script>
     <script type="text/javascript" src="js/lib/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/lib/offcanvas.js"></script>
     <script type="text/javascript" src="js/lib/knockout-3.2.0.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js"></script>
     <script src="js/app.js"></script>
