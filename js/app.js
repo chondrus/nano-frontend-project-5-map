@@ -272,6 +272,11 @@ var ViewModel = function() {
 function tryToLoadWikipedia(placeName) {
 
     var $wikiElem = $('#wikipedia-links');
+
+    var wikiRequestTimeout = setTimeout(function(){
+        $('#wikipedia-links').html("<i>error retrieving wikipedia articles</i>");
+    }, 8000);
+
     $.ajax({
         url: "https://en.wikipedia.org/w/api.php",
         data: {
@@ -283,7 +288,7 @@ function tryToLoadWikipedia(placeName) {
         },
         type: "GET",
         dataType: "jsonp",
-        success: function ( data ) {
+        done: function ( data ) {
 
             var articles = data.query.search;
 
@@ -306,6 +311,9 @@ function tryToLoadWikipedia(placeName) {
             // reset the infowindow content
             var $infoWindowTemplate = $('#infowindow-template');
             infoWindow.setContent($infoWindowTemplate.html());
+
+            // clear timer
+            clearTimeout(wikiRequestTimeout);
         },
         error: function ( e ) {
             $wikiElem.append('<i>error retrieving wikipedia links</i>');
@@ -351,7 +359,7 @@ function initMap() {
  */
 function googleMapErrorHandling() {
     var mapDiv = document.getElementById('map');
-    mapDiv.append("google maps is currently unavailable");
+    mapDiv.html("<i>google maps is currently unavailable</i>");
 }
 
 
@@ -363,8 +371,7 @@ function googleMapErrorHandling() {
 var vm = new ViewModel();
 ko.applyBindings(vm);
 
-// Google maps - call the initialize function after the page has finished loading
-google.maps.event.addDomListener(window, 'load', initMap);
+// map initialization is called via callback
 
 
 
