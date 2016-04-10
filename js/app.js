@@ -346,6 +346,14 @@ function initMap() {
     return;
 }
 
+/*
+ * googleMapErrorHandling
+ */
+function googleMapErrorHandling() {
+    var mapDiv = document.getElementById('map');
+    mapDiv.append("google maps is currently unavailable");
+}
+
 
 /*
  * Create the application

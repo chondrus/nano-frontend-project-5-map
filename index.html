@@ -36,7 +36,7 @@
                 <div id="filter" class="">
                     Filter Locations:
                     <div>
-                        <input data-bind="textInput: activeFilterInput"/></p>
+                        <input data-bind="textInput: activeFilterInput"/>
                     </div>
                 </div>
 
@@ -70,7 +70,8 @@
     <script type="text/javascript" src="js/lib/bootstrap.min.js"></script>
     <script type="text/javascript" src="js/lib/offcanvas.js"></script>
     <script type="text/javascript" src="js/lib/knockout-3.2.0.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?&callback=initMap"
+        onerror="googleMapErrorHandling()"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
