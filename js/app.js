@@ -69,7 +69,7 @@ var Location = function(data) {
     this.description = data.contentString;
     // just to prevent re-calling toLowerCase a bunch
     this.search_text = data.name.toLowerCase() + " " + data.contentString.toLowerCase();
-}
+};
 
 // knockout's ViewModel
 var ViewModel = function() {
@@ -239,7 +239,7 @@ var ViewModel = function() {
                 marker.setAnimation(null);
             }, 700);
             setTimeout(function() {
-                infoWindow.open(map, marker)
+                infoWindow.open(map, marker);
             }, 700);
         });
 
@@ -251,7 +251,6 @@ var ViewModel = function() {
         for (var i = 0; i < self.allLocationButtons().length; i++) {
             self.allLocationButtons()[i].marker = self.createMapMarker(self.allLocationButtons()[i]);
         }
-        console.log(self.allLocationButtons());
     };
 };
 
@@ -272,8 +271,6 @@ var ViewModel = function() {
  */
 function tryToLoadWikipedia(placeName) {
 
-    console.log("tryToLoadWikipedia");
-
     var $wikiElem = $('#wikipedia-links');
     $.ajax({
         url: "https://en.wikipedia.org/w/api.php",
@@ -287,7 +284,6 @@ function tryToLoadWikipedia(placeName) {
         type: "GET",
         dataType: "jsonp",
         success: function ( data ) {
-            console.log(data);
 
             var articles = data.query.search;
 
@@ -319,7 +315,7 @@ function tryToLoadWikipedia(placeName) {
     });
 
     return;
-};
+}
 
 
 /*
