@@ -8,6 +8,8 @@ Project 5 for front-end web developer nanodegree.
 
 None for this project!
 
+All you have to do is clone the project and open index.html with a browser.
+
 ### Files
 
 - **README.md**: this one!
