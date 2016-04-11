@@ -78,7 +78,8 @@ var ViewModel = function() {
 
     self.allLocationButtons = ko.observableArray([]);  // not sure this has to be an observable
     self.selectedLocation = ko.observable(null);
-    self.activeFilterInput = ko.observable ( null );
+    self.activeFilterInput = ko.observable (null);
+    self.gerror = ko.observable (null);
 
     // use the data to create the initial location buttons
     initialLocations.forEach(function(location){
@@ -247,10 +248,14 @@ var ViewModel = function() {
     };
 
     // thin, loopy wrapper around `createMapMarker` above
-    self.createMapMarkers = function () {
+    self.createMapMarkers = function() {
         for (var i = 0; i < self.allLocationButtons().length; i++) {
             self.allLocationButtons()[i].marker = self.createMapMarker(self.allLocationButtons()[i]);
         }
+    };
+
+    self.updateOnGoogleError = function() {
+        self.gerror("google maps is currently unavailable");
     };
 };
 
@@ -358,8 +363,9 @@ function initMap() {
  * googleMapErrorHandling
  */
 function googleMapErrorHandling() {
-    var mapDiv = document.getElementById('map');
-    mapDiv.html("<i>google maps is currently unavailable</i>");
+    if (vm) {
+        vm.updateOnGoogleError();
+    }
 }
 
 
