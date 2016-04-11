@@ -288,7 +288,7 @@ function tryToLoadWikipedia(placeName) {
         },
         type: "GET",
         dataType: "jsonp",
-        done: function ( data ) {
+        success: function ( data ) {
 
             var articles = data.query.search;
 
