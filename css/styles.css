@@ -80,7 +80,8 @@ body {
     margin-right: 15px;
     margin-bottom: 0;
     padding: 0;
+}
 
-    /*for the alert*/
+.map-alert {
     text-align: center;
 }
